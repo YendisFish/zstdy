@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     _ = b.addModule("zstdy", .{
-        .root_source_file = b.path("src/zstdy.zig"),
+        .root_source_file = .{ .path = "src/zstdy.zig" },
         .target = target,
         .optimize = optimize,
     });
