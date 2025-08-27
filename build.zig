@@ -4,12 +4,7 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-
     _ = b.addModule("zstdy", .{
-        .root_source_file = .{ .path = "src/zstdy.zig" },
-        .target = target,
-        .optimize = optimize,
+        .root_source_file = b.path("src/zstdy.zig"),
     });
 }
