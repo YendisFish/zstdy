@@ -50,7 +50,7 @@ const std = @import("std");
 //     };
 // }
 
-const String = struct {
+pub const String = struct {
     const Self = @This();
     slice: []const u8,
     allocator: std.mem.Allocator,
