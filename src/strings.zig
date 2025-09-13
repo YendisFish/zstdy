@@ -13,10 +13,10 @@ pub const String = struct {
         };
     }
 
-    pub fn add(self: Self, new: []const u8) !Self {
+    pub fn add(self: Self, new: []const u8) Self {
         defer self.deinit() catch @panic("Failed to free unmutated string!");
 
-        const newSlice = try self.allocator.alloc(u8, self.slice.len + new.len);
+        const newSlice = self.allocator.alloc(u8, self.slice.len + new.len) catch @panic("Could not add to string");
         
         std.mem.copyForwards(u8, newSlice, self.slice);
         std.mem.copyForwards(u8, newSlice[self.slice.len..], new);
@@ -27,10 +27,10 @@ pub const String = struct {
         };
     }
 
-    pub fn addStr(self: Self, new: Self) !Self {
+    pub fn addStr(self: Self, new: Self) Self {
         defer self.deinit() catch @panic("Failed to free unmutated string!");
 
-        const newSlice = try self.allocator.alloc(u8, self.slice.len + new.slice.len);
+        const newSlice = self.allocator.alloc(u8, self.slice.len + new.slice.len) catch @panic("Could not add to string");
         
         std.mem.copyForwards(u8, newSlice, self.slice);
         std.mem.copyForwards(u8, newSlice[self.slice.len..], new.slice);
@@ -41,8 +41,8 @@ pub const String = struct {
         };
     }
 
-    pub fn addNoFree(self: Self, new: []const u8) !Self {
-        const newSlice = try self.allocator.alloc(u8, self.slice.len + new.len);
+    pub fn addNoFree(self: Self, new: []const u8) Self {
+        const newSlice = self.allocator.alloc(u8, self.slice.len + new.len) catch @panic("Could not add to string!");
         
         std.mem.copyForwards(u8, newSlice, self.slice);
         std.mem.copyForwards(u8, newSlice[self.slice.len..], new);
@@ -57,23 +57,23 @@ pub const String = struct {
         return std.mem.containsAtLeast(u8, self.slice, 1, pattern);
     }
 
-    pub fn ansi(self: Self, code: []const u8) !Self {
+    pub fn ansi(self: Self, code: []const u8) Self {
         defer self.deinit() catch @panic("Failed to free unmutated string!");
 
-        var header = try Self.init(self.allocator, "\x1B[38;5;");
-        header = try (try header.add(code)).add("m");
-        header = try header.add(self.slice);
-        header = try header.add("\x1B[0m");
+        var header = Self.init(self.allocator, "\x1B[38;5;") catch @panic("Could not allocate header");
+        header = header.add(code).add("m");
+        header = header.add(self.slice);
+        header = header.add("\x1B[0m");
 
         return header;
     }
 
-    pub fn bold(self: Self) !Self {
+    pub fn bold(self: Self) Self {
         defer self.deinit() catch @panic("Failed to free unmutated string!");
 
-        var header = try Self.init(self.allocator, "\x1B[1m");
-        header = try header.add(self.slice);
-        header = try header.add("\x1B[0m");
+        var header = Self.init(self.allocator, "\x1B[1m") catch @panic("Could not allocate header");
+        header = header.add(self.slice);
+        header = header.add("\x1B[0m");
 
         return header;
     }
@@ -98,7 +98,7 @@ test "String.add()" {
     var str = try String.init(alloc, "Hello, ");
     defer str.deinit() catch @panic("Failed to free string!");
 
-    str = try str.add("World!");
+    str = str.add("World!");
 
     std.debug.print("{s}\n", .{str.slice});
 }
@@ -131,8 +131,7 @@ test "String Colors" {
     var str = try String.init(alloc, "Hello, World!");
     defer str.deinit() catch @panic("Could not free string!");
 
-    str = str.ansi("127") catch @panic("Failed to make string colored!");
-    str = str.bold() catch @panic("Failed to make string bold!");
+    str = str.ansi("127").bold();
     
     std.debug.print("{s}\n", .{str.slice});
 }
